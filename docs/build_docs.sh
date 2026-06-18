@@ -83,7 +83,7 @@ if [ -n "$PANDOC" ]; then
   if [ -n "$CHROME" ] && [ -f "$DOCS/Informe.html" ]; then
     echo "--- Informe: PDF (chrome imprime el HTML) ---"
     rm -f "$DOCS/Informe.pdf"
-    timeout 120 "$CHROME" $CFLAGS \
+    timeout 120 "$CHROME" $CFLAGS --no-pdf-header-footer \
       --print-to-pdf="$DOCS/Informe.pdf" "file://$DOCS/Informe.html" 2>/dev/null
     [ -f "$DOCS/Informe.pdf" ] && echo "OK Informe.pdf" || echo "WARN: no se generó Informe.pdf"
   fi
