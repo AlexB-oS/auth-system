@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+{% block title %}Verificación 2FA{% endblock %}
+{% block content %}
+<h1>Verificación en dos pasos</h1>
+<p class="muted">Paso 2 de 2 · Ingresa el código de 6 dígitos de tu app autenticadora.</p>
+<form method="post" autocomplete="off">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <label>Código TOTP
+    <input type="text" name="code" inputmode="numeric" pattern="[0-9A-Za-z\-]*"
+           maxlength="13" class="code-input" autofocus required
+           placeholder="123456">
+  </label>
+  <p class="hint">¿Perdiste tu teléfono? Ingresa uno de tus códigos de respaldo.</p>
+  <button type="submit">Verificar</button>
+</form>
+{% endblock %}

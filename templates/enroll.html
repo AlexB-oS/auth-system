@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+{% block title %}Configurar 2FA{% endblock %}
+{% block content %}
+<h1>Configura tu segundo factor</h1>
+<p class="muted">Escanea el código QR con Google Authenticator o Microsoft Authenticator.</p>
+
+<div class="enroll-grid">
+  <div class="qr-box">
+    {% if qr %}<img src="{{ qr }}" alt="Código QR otpauth" width="200" height="200">{% endif %}
+  </div>
+  <div>
+    <p>O ingresa la clave manualmente:</p>
+    <code class="secret">{{ secret }}</code>
+    <p class="hint">Algoritmo SHA1 · 6 dígitos · 30 s</p>
+  </div>
+</div>
+
+<form method="post" autocomplete="off">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <label>Ingresa el código actual para confirmar
+    <input type="text" name="code" inputmode="numeric" pattern="[0-9]*"
+           maxlength="6" class="code-input" autofocus required placeholder="123456">
+  </label>
+  <button type="submit">Activar segundo factor</button>
+</form>
+{% endblock %}

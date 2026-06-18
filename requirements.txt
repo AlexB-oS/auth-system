@@ -1,0 +1,10 @@
+# Dependencias del sistema de autenticación (IIC2531 - Proyecto Final)
+Flask>=3.0,<4.0
+bcrypt>=4.1
+cryptography>=42.0
+qrcode[pil]>=7.4
+matplotlib>=3.8
+pytest>=8.0
+requests>=2.31
+# Nota: weasyprint (para PDF sin navegador) se instala aparte en build_docs.sh
+# porque requiere librerías nativas que pueden no estar presentes.

@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+{% block title %}Panel{% endblock %}
+{% block content %}
+<h1>Hola, {{ username }}</h1>
+<p class="success-banner">Tu sesión está protegida con autenticación de dos factores.</p>
+<ul class="facts">
+  <li>Contraseña verificada con <strong>bcrypt</strong>.</li>
+  <li>Segundo factor <strong>TOTP (RFC 6238)</strong> verificado en tiempo constante.</li>
+  <li>Secreto TOTP <strong>cifrado en reposo</strong> (no almacenado en texto plano).</li>
+</ul>
+<form action="{{ url_for('logout') }}" method="post" class="inline">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <button type="submit">Cerrar sesión</button>
+</form>
+{% endblock %}

@@ -1,0 +1,22 @@
+/* Estilo del informe al renderizar a HTML/PDF (pandoc + chrome). */
+body {
+  max-width: 52em;
+  margin: 2.2em auto;
+  padding: 0 1.2em;
+  font-family: "Segoe UI", Helvetica, Arial, sans-serif;
+  color: #1e293b;
+  line-height: 1.5;
+  font-size: 15px;
+}
+h1 { color: #4338ca; border-bottom: 2px solid #e2e8f0; padding-bottom: .2em; margin-top: 1.6em; }
+h2 { color: #5b21b6; margin-top: 1.4em; }
+h3 { color: #475569; }
+code { background: #eef2ff; padding: 1px 4px; border-radius: 4px; }
+pre { background: #f8fafc; border: 1px solid #e2e8f0; padding: .8em; border-radius: 6px; overflow-x: auto; }
+img { max-width: 100%; height: auto; display: block; margin: 1em auto; }
+table { border-collapse: collapse; margin: 1em 0; font-size: 14px; }
+th, td { border: 1px solid #cbd5e1; padding: 5px 9px; text-align: left; }
+th { background: #ede9fe; }
+blockquote { border-left: 4px solid #a78bfa; margin: 1em 0; padding: .3em 1em; color: #475569; background: #faf5ff; }
+#TOC { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: .6em 1.2em; font-size: 14px; }
+@page { margin: 1.6cm; }

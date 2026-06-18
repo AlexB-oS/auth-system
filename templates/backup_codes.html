@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+{% block title %}Códigos de respaldo{% endblock %}
+{% block content %}
+<h1>Segundo factor activado</h1>
+<p class="muted">Guarda estos <strong>códigos de respaldo</strong> en un lugar seguro.
+Cada uno sirve <strong>una sola vez</strong> si pierdes tu teléfono. No se volverán a mostrar.</p>
+
+<ul class="codes">
+  {% for c in codes %}<li><code>{{ c }}</code></li>{% endfor %}
+</ul>
+
+<a class="btn" href="{{ url_for('index') }}">Continuar al panel</a>
+{% endblock %}

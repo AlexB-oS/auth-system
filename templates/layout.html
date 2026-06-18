@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Autenticación{% endblock %} · IIC2531</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="{{ url_for('static', filename='app.js') }}" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <span class="brand">Auth · Contraseña + TOTP</span>
+    <nav>
+      {% if session.get('user_id') %}
+        <form action="{{ url_for('logout') }}" method="post" class="inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="linkbtn">Cerrar sesión</button>
+        </form>
+      {% else %}
+        <a href="{{ url_for('login') }}">Ingresar</a>
+        <a href="{{ url_for('register') }}">Registrarse</a>
+      {% endif %}
+    </nav>
+  </header>
+
+  <main class="card">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="foot">
+    Proyecto Final IIC2531 · M. Ulloa &amp; A. Burgos · demostración local
+  </footer>
+</body>
+</html>

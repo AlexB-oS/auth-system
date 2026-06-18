@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+{% block title %}Ingresar{% endblock %}
+{% block content %}
+<h1>Ingresar</h1>
+<p class="muted">Paso 1 de 2 · Contraseña</p>
+<form method="post" autocomplete="off">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <label>Usuario
+    <input type="text" name="username" value="{{ username }}" required autofocus>
+  </label>
+  <label>Contraseña
+    <input type="password" name="password" required>
+  </label>
+  <button type="submit">Continuar</button>
+</form>
+<p class="muted">¿No tienes cuenta? <a href="{{ url_for('register') }}">Registrarse</a></p>
+{% endblock %}

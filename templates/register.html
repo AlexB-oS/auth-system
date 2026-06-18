@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+{% block title %}Crear cuenta{% endblock %}
+{% block content %}
+<h1>Crear cuenta</h1>
+<p class="muted">Paso 1 de 2. Luego configurarás tu segundo factor (TOTP).</p>
+<form method="post" autocomplete="off">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <label>Usuario
+    <input type="text" name="username" value="{{ username }}" required
+           minlength="3" maxlength="32" pattern="[A-Za-z0-9_.\-]+" autofocus>
+  </label>
+  <label>Contraseña
+    <input type="password" name="password" required minlength="8">
+  </label>
+  <p class="hint">Mínimo 8 caracteres. Se almacena con bcrypt (nunca en texto plano).</p>
+  <button type="submit">Crear cuenta</button>
+</form>
+<p class="muted">¿Ya tienes cuenta? <a href="{{ url_for('login') }}">Ingresar</a></p>
+{% endblock %}

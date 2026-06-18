@@ -1,0 +1,24 @@
+# Entorno y artefactos locales
+.venv/
+venv/
+__pycache__/
+*.pyc
+instance/
+*.db
+.env
+
+# Resultados de experimentos regenerables (se pueden versionar si se desea evidencia;
+# por defecto los ignoramos para mantener el repo liviano).
+experiments/results/*.png
+experiments/results/*.log
+experiments/results/*.csv
+
+# Salidas de render de documentos
+slides/*.pptx
+slides/*.pdf
+slides/*.html
+docs/*.pdf
+docs/*.docx
+
+# Navegador headless descargado para render (best-effort)
+.cache-browser/
