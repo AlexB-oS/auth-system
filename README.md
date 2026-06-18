@@ -78,7 +78,7 @@ make experiments  # genera experiments/results/: figuras, tablas y logs
 Produce: `rfc_conformance.{txt,csv}` y `fig_conformance.png` (E1),
 `fig_timing.png` (E3), `fig_bruteforce.png` + `bruteforce.log` (E4) y `replay.log` (E5).
 
-## Generar los documentos (entregables)
+## Generar los documentos
 
 ```bash
 make docs         # diagramas + capturas + render
@@ -92,10 +92,9 @@ Genera:
 | Presentación (HTML) | `slides/slides.html` |
 | Informe (Word) | `docs/Informe.docx` |
 | Informe (PDF) | `docs/Informe.pdf` |
-| Guion del orador (Word) | `slides/guion.docx` |
 
 > Nota: los `.pptx/.pdf/.docx` son artefactos de build (en `.gitignore`); se regeneran
-> con `make docs`. Las fuentes (`docs/Informe.md`, `slides/slides.md`, `slides/guion.md`)
+> con `make docs`. Las fuentes (`docs/Informe.md`, `slides/slides.md`)
 > y las figuras (`docs/figuras/`) sí están versionadas.
 
 ## Todo de una vez
