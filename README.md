@@ -7,6 +7,9 @@ Servidor local de autenticación de dos factores (contraseña + TOTP) implementa
 **desde cero** en Python/Flask, con defensas de seguridad concretas y un **arnés que
 ataca y mide** esas defensas. Ver el detalle en [`docs/Informe.md`](docs/Informe.md).
 
+> ¿Nuevo en el repo? Empieza por la **[guía del código](docs/EXPLICACION.md)**, que
+> explica la estructura, el flujo del login y dónde vive cada decisión de seguridad.
+
 ## ¿Qué incluye?
 
 - **TOTP desde cero** (HMAC-SHA1, RFC 4226/6238), interoperable con Google/Microsoft
