@@ -167,6 +167,11 @@ Cuando alguien envía el formulario de contraseña a `/login`:
    - Verifica la contraseña con **`crypto.verify_password`** (bcrypt).
    - Si falla, registra el fallo (`ratelimit.register_password_failure`, que puede
      disparar el bloqueo).
+
+---
+
+## Flujo de un login (continuación)
+
 3. Si la contraseña es correcta, **`sessions.start_pending_2fa(uid)`** marca la sesión
    como _"contraseña OK, falta el 2FA"_ y redirige a `/2fa`. **Aún no estás logueado.**
 4. En `/2fa` envías el código → **`accounts.verify_totp_step(...)`**:
@@ -178,6 +183,10 @@ Cuando alguien envía el formulario de contraseña a `/login`:
      (`recovery.verify_and_consume`, de un solo uso).
 5. Si todo bien, **`sessions.complete_login(uid)`** **regenera** la sesión y recién ahí
    fija `user_id` → estás autenticado (defensa contra _fijación de sesión_).
+
+---
+
+## Flujo de registro
 
 El registro/enrolamiento sigue la misma lógica: `accounts.register` → `start_enrollment`
 (genera y **cifra** el secreto) → `confirm_enrollment` (verifica el primer código,
