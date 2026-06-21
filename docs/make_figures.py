@@ -100,33 +100,43 @@ def fig_totp_flujo():
 
 
 def fig_login_secuencia():
-    fig, ax = plt.subplots(figsize=(9.5, 6.5))
-    ax.set_xlim(0, 10); ax.set_ylim(0, 11); ax.axis("off")
-    lanes = {"Usuario": 1.6, "Servidor Flask": 5.0, "Base de datos": 8.6}
+    # Formato apaisado y tipografía grande: el diagrama es protagonista de la lámina,
+    # así que debe leerse bien incluso proyectado.
+    fig, ax = plt.subplots(figsize=(12.5, 6.4))
+    ax.set_xlim(0, 14); ax.set_ylim(0, 11); ax.axis("off")
+    lanes = {"Usuario": 2.3, "Servidor Flask": 7.0, "Base de datos": 11.7}
     for name, x in lanes.items():
-        rbox(ax, x, 10.3, 2.4, 0.8, name, fc="#1e293b", ec="#0f172a", tc="white", fs=10, weight="bold")
-        ax.plot([x, x], [0.3, 9.8], color="#cbd5e1", lw=1.3, ls="--")
+        rbox(ax, x, 10.4, 3.3, 1.0, name, fc="#1e293b", ec="#0f172a", tc="white", fs=15, weight="bold")
+        ax.plot([x, x], [0.5, 9.85], color="#cbd5e1", lw=1.8, ls="--")
 
     U, S, D = lanes["Usuario"], lanes["Servidor Flask"], lanes["Base de datos"]
     steps = [
-        (9.2, U, S, "1) usuario + contraseña"),
-        (8.2, S, D, "2) SELECT user; verify bcrypt"),
-        (7.2, S, U, "3) pedir código TOTP (paso 2)"),
-        (6.2, U, S, "4) código de 6 dígitos"),
-        (5.0, S, S, "5) verify HMAC-SHA1 · ventana ±1 · anti-replay · compare_digest"),
-        (3.9, S, D, "6) UPDATE last_totp_counter"),
-        (2.9, S, U, "7) sesión iniciada (cookie HttpOnly+SameSite)"),
+        (9.0, U, S, "1) usuario + contraseña"),
+        (7.8, S, D, "2) SELECT user · verify bcrypt"),
+        (6.6, S, U, "3) pedir código TOTP (paso 2)"),
+        (5.4, U, S, "4) código de 6 dígitos"),
+        (4.0, S, S, "5) verify HMAC-SHA1 · ventana ±1\nanti-replay · compare_digest"),
+        (2.6, S, D, "6) UPDATE last_totp_counter"),
+        (1.4, S, U, "7) sesión iniciada (cookie HttpOnly+SameSite)"),
     ]
     for y, x1, x2, label in steps:
-        if x1 == x2:  # auto-mensaje (procesamiento interno)
-            ax.add_patch(Rectangle((x1 - 2.4, y - 0.35), 4.8, 0.7, fc="#fef9c3", ec="#a16207"))
-            ax.text(x1, y, label, ha="center", va="center", fontsize=7.0, color=INK)
+        if x1 == x2:  # auto-mensaje (procesamiento interno del servidor)
+            ax.add_patch(
+                FancyBboxPatch(
+                    (x1 - 3.6, y - 0.62), 7.2, 1.24,
+                    boxstyle="round,pad=0.02,rounding_size=0.08",
+                    fc="#fef9c3", ec="#a16207", lw=1.8,
+                )
+            )
+            ax.text(x1, y, label, ha="center", va="center", fontsize=12.5, color=INK, fontweight="bold")
         else:
-            arr(ax, x1, y, x2, y, "", off=0.0)
-            ax.text((x1 + x2) / 2, y + 0.18, label, ha="center", va="bottom", fontsize=8, color=INK)
-    ax.set_title("Login en dos pasos (secuencia)", fontweight="bold", fontsize=13)
+            ax.annotate("", xy=(x2, y), xytext=(x1, y),
+                        arrowprops=dict(arrowstyle="-|>", lw=2.2, color="#475569",
+                                        mutation_scale=22))
+            ax.text((x1 + x2) / 2, y + 0.24, label, ha="center", va="bottom", fontsize=12.5, color=INK)
+    ax.set_title("Login en dos pasos (secuencia)", fontweight="bold", fontsize=17)
     fig.tight_layout()
-    fig.savefig(os.path.join(FIG, "fig_login_secuencia.png"), dpi=140)
+    fig.savefig(os.path.join(FIG, "fig_login_secuencia.png"), dpi=160)
     plt.close(fig)
 
 

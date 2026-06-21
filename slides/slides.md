@@ -12,6 +12,9 @@ style: |
   section.lead { text-align: center; }
   table { font-size: 22px; }
   code { background: #eef2ff; }
+  pre { font-size: 20px; line-height: 1.25; }
+  section.dense { font-size: 21px; }
+  section.dense li { margin: 0.18em 0; }
   .small { font-size: 20px; color: #475569; }
   .big { font-size: 40px; font-weight: 700; color: #4338ca; }
 ---
@@ -72,44 +75,6 @@ Implementamos un servidor web local que exige **contraseña + un código de 6 d�
 
 ---
 
-## Decisiones de seguridad
-
-| Riesgo                          | Defensa                                                   |
-| ------------------------------- | --------------------------------------------------------- |
-| Fuga del archivo `.db`          | bcrypt (contraseña) + secreto cifrado con AES y Hmac      |
-| Fuerza bruta                    | Bloquear cuenta por intentos fallidos + limitación por IP |
-| Ataques de timing               | `hmac.compare_digest`                                     |
-| Replay de código                | último paso consumido                                     |
-| Enumeración de usuarios         | mensaje uniforme + bcrypt señuelo si no existe usuario    |
-| CSRF / Inyección SQL / fijación | token CSRF · queries parametrizadas · regen. sesión       |
-
-## <!-- Esta tabla es el corazón técnico. Cada fila es una amenaza concreta con su defensa. En las próximas láminas mostramos evidencia medida de las cuatro más interesantes. -->
-
----
-
-## Primera version (no final)
-
-    def generate_totp(secret):
-      key = base64.b32decode(secret, casefold=True)
-
-      time_step = int(time.time() // 30)
-      time_bytes = struct.pack('>Q', time_step)
-
-      hmac_hash = hmac.new(key, time_bytes, hashlib.sha1).digest()
-      offset = hmac_hash[-1] & 0x0F
-
-      code = (hmac_hash[offset] << 24 | hmac_hash[offset + 1] << 16 |
-            hmac_hash[offset + 2] << 8 | hmac_hash[offset + 3])
-      totp_code = code % 1000000
-
-      return str(totp_code).zfill(6)
-
-    def compare_totp(secret, code):
-      expected_code = generate_totp(secret)
-      return hmac.compare_digest(expected_code, code)
-
----
-
 ## Modelo de amenaza
 
 ![w:880](../docs/figuras/fig_modelo_amenaza.png)
@@ -122,7 +87,17 @@ Implementamos un servidor web local que exige **contraseña + un código de 6 d�
 
 ![w:760](../docs/figuras/fig_arquitectura.png)
 
-<!-- Módulos con responsabilidades acotadas (privilegio mínimo y separación). El servidor coordina TOTP, crypto, rate-limiter y sesiones; la base de datos guarda hashes y el secreto cifrado. -->
+<!-- Módulos con responsabilidades acotadas (privilegio mínimo y separación). `app.py` casi no piensa: recibe el HTTP y delega en `auth/accounts.py`, que coordina TOTP, crypto, rate-limiter y sesiones; la base de datos guarda hashes y el secreto cifrado. -->
+
+---
+
+<!-- _class: lead -->
+
+# Fundamentos
+
+## el algoritmo y el flujo, **en el código**
+
+<!-- Tres láminas para mostrar el corazón del proyecto: cómo se genera un código TOTP, cómo lo implementamos desde cero, y cómo viaja una petición de login por el código. -->
 
 ---
 
@@ -137,60 +112,79 @@ Implementamos un servidor web local que exige **contraseña + un código de 6 d�
 
 ---
 
+## El núcleo: TOTP desde cero — `auth/totp.py`
+
+```python
+def hotp(secret, counter, digits=6):            # RFC 4226
+    msg = struct.pack(">Q", counter)            # contador → 8 bytes
+    mac = hmac.new(secret, msg, hashlib.sha1).digest()
+    off = mac[-1] & 0x0F                         # truncación dinámica
+    code = ((mac[off]   & 0x7F) << 24 | (mac[off+1] & 0xFF) << 16
+          | (mac[off+2] & 0xFF) << 8  |  mac[off+3] & 0xFF)
+    return str(code % 10**digits).zfill(digits)
+
+# TOTP = HOTP con contador = ⌊unix / 30⌋
+def verify(secret, code, window=1):             # RFC 6238 · ±1 paso
+    base, matched = int(time.time() // 30), None
+    for off in range(-window, window + 1):      # recorre TODA la ventana
+        if hmac.compare_digest(hotp(secret, base + off), code):
+            matched = base + off                # sin cortar ⇒ tiempo constante
+    return matched                              # paso usado ⇒ anti-replay
+```
+
+<!-- Este es el corazón: solo librería estándar. hotp hace el HMAC, la truncación dinámica del RFC y el módulo. verify recorre la ventana ±1 SIN cortar al primer acierto (tiempo constante), compara con compare_digest y DEVUELVE el paso que coincidió: ese número es justo lo que usa el anti-replay. Cada detalle —no cortar, compare_digest, devolver el contador— es una decisión de seguridad, no un capricho. -->
+
+---
+
 ## Login en dos pasos
 
-![w:680](../docs/figuras/fig_login_secuencia.png)
+![w:820](../docs/figuras/fig_login_secuencia.png)
 
-## <!-- El estado intermedio vive en el servidor: tras la contraseña la sesión queda "pendiente de 2FA"; solo al validar el TOTP se promueve a autenticada, regenerando la sesión. La verificación incluye ventana, anti-replay y comparación en tiempo constante. -->
+Estado intermedio **en el servidor** (*"pendiente de 2FA"*); solo el TOTP autentica y **regenera** la sesión (anti-fijación).
+
+<!-- El estado intermedio vive en el servidor: nunca se confía en que el cliente diga "ya pasé la contraseña". Solo al validar el TOTP se promueve a autenticada, regenerando la sesión. La verificación del código incluye ventana ±1, anti-replay y comparación en tiempo constante. -->
+
+---
+
+<!-- _class: dense -->
+
+## El flujo, en el código
+
+`app.py` casi no piensa: recibe el HTTP y **delega** en `auth/accounts.py`. Una petición de **`POST /login`** (tras el guardia `csrf_protect`, un `before_request`):
+
+1. **`verify_password_step`** — usuario inexistente ⇒ `dummy_verify` + mensaje genérico (**anti-enumeración**); chequea **lockout**; `verify_password` (bcrypt).
+2. OK ⇒ **`start_pending_2fa`**: sesión *"pendiente de 2FA"* → `/2fa`. **Aún no autenticado.**
+3. **`verify_totp_step`** — `SecretVault` descifra el secreto → `totp.verify` (±1) → **anti-replay** (paso > último); o un **código de respaldo**.
+4. OK ⇒ **`complete_login`**: **regenera** la sesión y recién fija `user_id` (**anti-fijación**).
+
+**Registro:** `register` → `start_enrollment` (genera y **cifra** el secreto) → `confirm_enrollment` (primer código → activa el 2FA + códigos de respaldo).
+
+<!-- app.py casi no piensa: delega en accounts. La traza muestra dónde vive cada defensa: anti-enumeración, lockout, anti-replay y anti-fijación están repartidas en módulos con responsabilidad acotada. El registro sigue la misma lógica, pero el secreto se CIFRA (no se hashea), porque para verificar hay que recalcular el HMAC. -->
+
+---
+
+## Decisiones de seguridad
+
+| Riesgo                          | Defensa                                                   |
+| ------------------------------- | --------------------------------------------------------- |
+| Fuga del archivo `.db`          | bcrypt (contraseña) + secreto cifrado con AES y Hmac      |
+| Fuerza bruta                    | Bloquear cuenta por intentos fallidos + limitación por IP |
+| Ataques de timing               | `hmac.compare_digest`                                     |
+| Replay de código                | último paso consumido                                     |
+| Enumeración de usuarios         | mensaje uniforme + bcrypt señuelo si no existe usuario    |
+| CSRF / Inyección SQL / fijación | token CSRF · queries parametrizadas · regen. sesión       |
+
+<!-- Esta tabla es el corazón técnico: cada fila es una amenaza concreta con su defensa, las mismas que acabamos de ver en el código. En las próximas láminas mostramos evidencia medida de las cuatro más interesantes. -->
+
+---
 
 ## Demo
 
-![h:400](../docs/figuras/shot_enroll.png) ![h:400](../docs/figuras/shot_2fa.png) ![h:400](../docs/figuras/shot_dashboard.png)
+![h:360](../docs/figuras/shot_qr.png) ![h:360](../docs/figuras/shot_2fa.png) ![h:360](../docs/figuras/shot_dashboard.png)
 
 _Enrolamiento (QR) → verificación 2FA → sesión protegida_
 
-<!-- Demostración: el usuario escanea el QR, la app genera códigos, ingresa el de 6 dígitos y entra. Si hay tiempo lo mostramos en vivo en localhost. -->
-
----
-
-## Flujo de un login
-
-Cuando alguien envía el formulario de contraseña a `/login`:
-
-1. **`app.py`** (ruta `login`) recibe el POST. Primero, el guardia `csrf_protect`
-   (un `before_request`) valida el **token CSRF**.
-2. Llama a **`accounts.verify_password_step(...)`**:
-   - Si el usuario **no existe**, igual ejecuta `crypto.dummy_verify()` (un bcrypt
-     "señuelo") y devuelve el **mismo** mensaje genérico → no se nota si el usuario
-     existe (anti-enumeración).
-   - Revisa si la cuenta está **bloqueada** (`ratelimit.is_locked`).
-   - Verifica la contraseña con **`crypto.verify_password`** (bcrypt).
-   - Si falla, registra el fallo (`ratelimit.register_password_failure`, que puede
-     disparar el bloqueo).
-
----
-
-## Flujo de un login (continuación)
-
-3. Si la contraseña es correcta, **`sessions.start_pending_2fa(uid)`** marca la sesión
-   como _"contraseña OK, falta el 2FA"_ y redirige a `/2fa`. **Aún no estás logueado.**
-4. En `/2fa` envías el código → **`accounts.verify_totp_step(...)`**:
-   - Descifra el secreto con **`crypto.SecretVault`** y verifica con **`totp.verify`**
-     (tolerancia ±1 paso de tiempo).
-   - **Anti-replay**: el paso del código debe ser _mayor_ al último usado
-     (`last_totp_counter`); si no, se rechaza.
-   - Si no era un código TOTP, prueba si es un **código de respaldo**
-     (`recovery.verify_and_consume`, de un solo uso).
-5. Si todo bien, **`sessions.complete_login(uid)`** **regenera** la sesión y recién ahí
-   fija `user_id` → estás autenticado (defensa contra _fijación de sesión_).
-
----
-
-## Flujo de registro
-
-El registro/enrolamiento sigue la misma lógica: `accounts.register` → `start_enrollment`
-(genera y **cifra** el secreto) → `confirm_enrollment` (verifica el primer código,
-activa el 2FA y crea los códigos de respaldo)
+<!-- Demostración: el usuario escanea el QR, la app genera códigos, ingresa el de 6 dígitos y entra. Si hay tiempo lo mostramos en vivo en localhost:5000. -->
 
 ---
 
