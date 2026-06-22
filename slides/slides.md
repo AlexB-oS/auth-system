@@ -264,6 +264,19 @@ Implementación de servidor web en Flask, y uso de SQLite.
 
 ---
 
+## Declaración de uso de IA
+
+Usamos asistencia de IA (**Claude**) como apoyo en:
+
+- **Redacción y estructura** de estas diapositivas y del guion.
+- **Andamiaje de los scripts de ataque** (`attacks/`) y sus mediciones.
+
+El contenido técnico, las decisiones de seguridad y la verificación de los resultados fueron **revisados y validados por los autores**.
+
+<!-- Declaramos el uso de IA de forma explícita: nos apoyó en redactar y estructurar las láminas y el guion, y en el andamiaje de los scripts de ataque. La lógica de seguridad y la validación de los resultados son responsabilidad nuestra. -->
+
+---
+
 <!-- _class: lead -->
 
 # ¿Preguntas?

@@ -8,6 +8,10 @@
 > Consejo: las diapositivas tienen poco texto a propósito. Este guion es lo que se dice;
 > las láminas solo apoyan. Practicar para no leer.
 
+> **Uso de IA:** este guion y las diapositivas se redactaron con asistencia de IA
+> (Claude) a partir del contenido y las decisiones de los autores; el texto final
+> fue revisado y ajustado por los expositores.
+
 ---
 
 ## Slide 1 — Portada · *(A)* · 0:00–0:30

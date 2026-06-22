@@ -19,6 +19,13 @@ que las defensas funcionan. Son la evidencia de los experimentos E3–E5 del inf
 - El objetivo es **medir y mejorar** nuestras propias defensas (security testing
   responsable), no atacar sistemas ajenos.
 
+## Declaración de uso de IA
+
+El andamiaje de estos scripts de ataque y sus mediciones (`timing_attack.py`,
+`bruteforce_demo.py`, `replay_demo.py`) se desarrolló con asistencia de IA (Claude).
+La lógica de seguridad, los parámetros de cada experimento y la interpretación de los
+resultados fueron revisados y validados por los autores.
+
 ## Cómo ejecutarlos
 
 ```bash
