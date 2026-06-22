@@ -140,7 +140,7 @@ def verify(secret, code, window=1):             # RFC 6238 · ±1 paso
 
 ![w:820](../docs/figuras/fig_login_secuencia.png)
 
-Estado intermedio **en el servidor** (*"pendiente de 2FA"*); solo el TOTP autentica y **regenera** la sesión (anti-fijación).
+Estado intermedio **en el servidor** (_"pendiente de 2FA"_); solo el TOTP autentica y **regenera** la sesión (anti-fijación).
 
 <!-- El estado intermedio vive en el servidor: nunca se confía en que el cliente diga "ya pasé la contraseña". Solo al validar el TOTP se promueve a autenticada, regenerando la sesión. La verificación del código incluye ventana ±1, anti-replay y comparación en tiempo constante. -->
 
@@ -153,7 +153,7 @@ Estado intermedio **en el servidor** (*"pendiente de 2FA"*); solo el TOTP autent
 `app.py` casi no piensa: recibe el HTTP y **delega** en `auth/accounts.py`. Una petición de **`POST /login`** (tras el guardia `csrf_protect`, un `before_request`):
 
 1. **`verify_password_step`** — usuario inexistente ⇒ `dummy_verify` + mensaje genérico (**anti-enumeración**); chequea **lockout**; `verify_password` (bcrypt).
-2. OK ⇒ **`start_pending_2fa`**: sesión *"pendiente de 2FA"* → `/2fa`. **Aún no autenticado.**
+2. OK ⇒ **`start_pending_2fa`**: sesión _"pendiente de 2FA"_ → `/2fa`. **Aún no autenticado.**
 3. **`verify_totp_step`** — `SecretVault` descifra el secreto → `totp.verify` (±1) → **anti-replay** (paso > último); o un **código de respaldo**.
 4. OK ⇒ **`complete_login`**: **regenera** la sesión y recién fija `user_id` (**anti-fijación**).
 
@@ -268,10 +268,10 @@ Implementación de servidor web en Flask, y uso de SQLite.
 
 Usamos asistencia de IA (**Claude**) como apoyo en:
 
-- **Redacción y estructura** de estas diapositivas y del guion.
-- **Andamiaje de los scripts de ataque** (`attacks/`) y sus mediciones.
+- **Redacción y estructura** de estas diapositivas y del guion. Posteriormente modificamos las slides. Y no seguimos el guion, sino que lo utilizamos como resumen impreso.
+- **Realización de los scripts de ataque** (`attacks/`) y sus mediciones.
 
-El contenido técnico, las decisiones de seguridad y la verificación de los resultados fueron **revisados y validados por los autores**.
+El resto del codigo, contenido técnico, las decisiones de seguridad y la verificación de los resultados fueron de parte nuestra.
 
 <!-- Declaramos el uso de IA de forma explícita: nos apoyó en redactar y estructurar las láminas y el guion, y en el andamiaje de los scripts de ataque. La lógica de seguridad y la validación de los resultados son responsabilidad nuestra. -->
 
